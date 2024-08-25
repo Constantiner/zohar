@@ -33,7 +33,7 @@ Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion 
 		- [`miko`](#miko-1)
 		- [Node.js EventEmitter](#nodejs-eventemitter)
 	- [Conclusion](#conclusion)
-- [Usage Example](#usage-example)
+- [Usage Examples](#usage-examples)
 	- [Chat Module Usage](#chat-module-usage)
 		- [Chat Module Implementation](#chat-module-implementation)
 		- [Subscribing to Chat Events](#subscribing-to-chat-events)
@@ -43,9 +43,10 @@ Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion 
 			- [Example: Unsubscribing from Events](#example-unsubscribing-from-events)
 		- [Internal Logic](#internal-logic)
 		- [Chat Module Summary](#chat-module-summary)
-	- [One-Time Login Event Handling](#one-time-login-event-handling)
+	- [One-Time Login Event Handling with `awaited` and `once`](#one-time-login-event-handling-with-awaited-and-once)
 		- [Login Module Implementation](#login-module-implementation)
-		- [Consumer Usage Example](#consumer-usage-example)
+		- [Consumer Usage Example with `awaited`](#consumer-usage-example-with-awaited)
+		- [Consumer Usage Example with `once`](#consumer-usage-example-with-once)
 		- [Explanation](#explanation)
 		- [Login Module Summary](#login-module-summary)
 - [License](#license)
@@ -421,7 +422,7 @@ eventEmitter.off('eventB', onEventB);
   
 - **When to Use Node.js EventEmitter**: If you’re in a Node.js environment and need a quick and flexible event emitter for a smaller, simpler project, the built-in EventEmitter might suffice, but be aware of the potential for type-related issues, the need to manage instances, and the complexity of handling unsubscriptions.
 
-## Usage Example
+## Usage Examples
 
 ### Chat Module Usage
 
@@ -534,23 +535,25 @@ The Chat Module handles events such as user connections, disconnections, and mes
 
 The Chat Module provides a straightforward API for subscribing to and unsubscribing from chat-related events. By encapsulating all the complex internal logic, the module offers a clean and efficient way for consumers to react to user activities without needing to manage the underlying event handling mechanisms.
 
-### One-Time Login Event Handling
+### One-Time Login Event Handling with `awaited` and `once`
 
-The following example demonstrates how to handle a one-time login event in a browser environment using the `miko` library. The login process is encapsulated within a module that interacts with an API and emits events based on the success or failure of the login attempt. The consumer can subscribe to these events using a promise-based approach.
+The following example demonstrates how to handle a one-time login event in a browser environment using the `miko` library's `awaited` and `once` utility functions. The login process is encapsulated within a fictional module that interacts with an API and emits various events based on different operations. For illustration purposes, we focus on handling the `login` event.
 
 #### Login Module Implementation
 
-This module simulates an API login request. It emits a `loginSuccess` event if the login is successful or a `loginFailure` event if it fails. The module exposes the `subscribe` function so that consumers can listen to these events.
+This fictional module simulates an API login request. It emits a single `login` event with a discriminated union type that indicates whether the login was successful or not. The module could emit other events as well, but here we illustrate the usage of the `login` event. The module exposes a specific function, `onLoginEvent`, for subscribing to the `login` event.
 
 ```typescript
 import { EventDescription, createEventEmitter } from 'miko';
 
-// Define event descriptions for the login process
-type LoginEvents = 
-    EventDescription<'loginSuccess', { userId: string; token: string }> &
-    EventDescription<'loginFailure', { error: string }>;
+// Define event descriptions with a discriminated union for login results
+type LoginResult = 
+    | { success: true; userId: string; token: string }
+    | { success: false; error: string };
 
-// Create an event emitter for login events
+type LoginEvents = EventDescription<'login', LoginResult>;
+
+// Create an event emitter for login events (and potentially other events)
 const [subscribe, emit] = createEventEmitter<LoginEvents>();
 
 // Simulated login function that interacts with an API
@@ -559,62 +562,54 @@ async function login(username: string, password: string) {
         // Simulate an API request with a timeout
         const response = await fakeApiLoginRequest(username, password);
 
-        if (response.success) {
-            // Emit a loginSuccess event if login is successful
-            emit('loginSuccess', { userId: response.userId, token: response.token });
-        } else {
-            // Emit a loginFailure event if login fails
-            emit('loginFailure', { error: response.error });
-        }
+        // Emit a successful login event
+        emit('login', { success: true, userId: response.userId, token: response.token });
     } catch (error) {
-        // Emit a loginFailure event if there's an unexpected error
-        emit('loginFailure', { error: 'Unexpected error occurred' });
+        // Emit a failed login event
+        emit('login', { success: false, error: error.message });
     }
 }
 
 // Simulated API login request function
-function fakeApiLoginRequest(username: string, password: string): Promise<{ success: boolean; userId?: string; token?: string; error?: string }> {
-    return new Promise((resolve) => {
+function fakeApiLoginRequest(username: string, password: string): Promise<{ userId: string; token: string }> {
+    return new Promise((resolve, reject) => {
         setTimeout(() => {
             if (username === 'correctUser' && password === 'correctPassword') {
-                resolve({ success: true, userId: 'user123', token: 'abcdef' });
+                resolve({ userId: 'user123', token: 'abcdef' });
             } else {
-                resolve({ success: false, error: 'Invalid credentials' });
+                reject(new Error('Invalid credentials'));
             }
         }, 1000); // Simulate a 1-second API response time
     });
 }
 
-// Expose the subscribe function directly
+// Expose the subscribe function specifically for the login event
 export { subscribe as onLoginEvent, login };
 ```
 
-#### Consumer Usage Example
+#### Consumer Usage Example with `awaited`
 
-The consumer uses the `onLoginEvent` function to create a `Promise` that listens for the login event. It resolves the promise if the login is successful and rejects it if the login fails. The subscription is automatically cleaned up by unsubscribing after the event is handled.
+The consumer uses the `awaited` function to wait for the `login` event. The function resolves the promise if the login is successful and rejects it if the login fails, all based on the discriminated union type.
 
 ```typescript
 import { onLoginEvent, login } from './loginService';
+import { awaited } from 'miko';
 
-function attemptLogin(username: string, password: string): Promise<{ userId: string; token: string }> {
-    return new Promise((resolve, reject) => {
-        // Listen for the loginSuccess event
-        const unsubscribeSuccess = onLoginEvent('loginSuccess', (eventName, data) => {
-            resolve(data); // Resolve the promise with the login data
-            unsubscribeSuccess(); // Clean up the subscription
-            unsubscribeFailure(); // Clean up the failure subscription
-        });
+async function attemptLogin(username: string, password: string): Promise<{ userId: string; token: string }> {
+    // Trigger the login process
+    login(username, password);
 
-        // Listen for the loginFailure event
-        const unsubscribeFailure = onLoginEvent('loginFailure', (eventName, data) => {
-            reject(new Error(data.error)); // Reject the promise with the error
-            unsubscribeSuccess(); // Clean up the success subscription
-            unsubscribeFailure(); // Clean up the subscription
-        });
+    // Use the `awaited` function to wait for the `login` event
+    const awaitLoginEvent = awaited(onLoginEvent);
+    const result = await awaitLoginEvent('login');
 
-        // Trigger the login process
-        login(username, password);
-    });
+    // Throw an error if the login failed
+    if (!result.success) {
+        throw new Error(result.error); // Reject with the error message
+    }
+
+    // Return the successful login data
+    return { userId: result.userId, token: result.token };
 }
 
 // Usage example
@@ -627,16 +622,39 @@ attemptLogin('correctUser', 'correctPassword')
     });
 ```
 
+#### Consumer Usage Example with `once`
+
+Alternatively, the consumer can use the `once` function to handle the `login` event. This function automatically unsubscribes after the event is triggered, providing a callback-based approach to handle the event.
+
+```typescript
+import { onLoginEvent, login } from './loginService';
+import { once } from 'miko';
+
+// Use the `once` function to handle the `login` event
+const onceSubscribe = once(onLoginEvent);
+
+onceSubscribe('login', (eventName, result) => {
+    if (result.success) {
+        console.log('Login successful!', result.userId, result.token);
+    } else {
+        console.error('Login failed:', result.error);
+    }
+});
+
+// Trigger the login process
+login('correctUser', 'correctPassword');
+```
+
 #### Explanation
 
-- **Login Module**: The module provides a `login` function that simulates an API request. Depending on the result of the API call, it emits either a `loginSuccess` or `loginFailure` event.
-- **Exposing the Subscribe Function**: The `onLoginEvent` function is exposed to allow consumers to subscribe to the login events.
-- **Promise-Based Consumer**: The consumer creates a `Promise` that listens for the `loginSuccess` and `loginFailure` events. It resolves or rejects the promise based on which event is received.
-- **Unsubscribing**: After the login event is handled (whether successful or failed), the consumer unsubscribes from both events to ensure no lingering subscriptions.
+- **Login Module**: The module provides a `login` function that simulates an API request. It emits a `login` event with a discriminated union type that indicates whether the login was successful or not. The module could also emit other events, but this example focuses on the `login` event.
+- **Exposing the `onLoginEvent` Function**: The `onLoginEvent` function is specifically exposed to allow consumers to subscribe to the `login` event, making it clear what the function is intended for.
+- **Promise-Based Consumer with `awaited`**: The consumer uses the `awaited` function to wait for the `login` event. The promise resolves with the login data if successful or throws an error if the login fails, all within a single event handler.
+- **Callback-Based Consumer with `once`**: Alternatively, the consumer can use the `once` function to handle the `login` event. This approach automatically unsubscribes after the event is triggered, providing a more traditional callback mechanism without the need for Promises.
 
 #### Login Module Summary
 
-This implementation provides a realistic example of how to handle a one-time login event using the `miko` event emitter library. By encapsulating the login logic within a module and exposing only the `subscribe` function, the implementation keeps the event handling clean and allows the consumer to easily integrate it into a promise-based workflow. This approach is particularly useful in situations where you want to handle events with a promise, ensuring that event subscriptions are managed efficiently and do not persist longer than necessary.
+This implementation demonstrates how to handle a one-time login event using the `miko` event emitter library with both the `awaited` and `once` utility functions. The login module is fictional and is designed to illustrate the usage of the `miko` library in handling events, specifically focusing on the `login` event. The module could emit other events, but the examples provided focus on demonstrating two different approaches to handling a single `login` event in a promise-based and callback-based manner. This approach is particularly useful when you want to handle events asynchronously, with automatic subscription management and a unified way to handle both success and failure outcomes.
 
 ## License
 
