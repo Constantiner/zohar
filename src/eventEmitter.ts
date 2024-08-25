@@ -542,3 +542,92 @@ export const createEventEmitter: EventEmitterCreator = <Event extends EventDescr
 	// Return the functions to subscribe, emit, and unsubscribe all listeners
 	return [subscribe, emit, unsubscribeAll];
 };
+
+/**
+ * Type for subscribing to an event only once. The listener will automatically unsubscribe after the event is triggered.
+ *
+ * @template Event - The event description type.
+ *
+ * @example
+ * // Define event descriptions
+ * type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>;
+ *
+ * // Create an event emitter
+ * const [subscribe, emit] = createEventEmitter<MyEvents>();
+ *
+ * // Use the `once` utility to subscribe to the `userConnected` event
+ * const onceSubscribe = once(subscribe);
+ *
+ * onceSubscribe('userConnected', (eventName, data) => {
+ *   console.log(`User ${data.userId} connected at ${data.timestamp}`);
+ * });
+ *
+ * // Emit the `userConnected` event
+ * emit('userConnected', { userId: 'user123', timestamp: new Date() });
+ */
+export type SubscribeOnce<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event & string>(
+	eventName: EventType,
+	listener: EventListener<Event, EventType>
+) => void;
+
+/**
+ * Utility function to subscribe to an event only once. It automatically unsubscribes after the event is triggered.
+ *
+ * @template Event - The event description type.
+ * @param subscribe - The original `subscribe` function to wrap with the `once` functionality.
+ * @returns A function that subscribes to an event once and unsubscribes automatically after the event is triggered.
+ */
+export const once =
+	<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeOnce<Event> =>
+	<EventType extends keyof Event & string>(eventName: EventType, listener: EventListener<Event, EventType>) => {
+		const unsubscribe = subscribe(eventName, (eventName, data) => {
+			unsubscribe();
+			listener(eventName, data);
+		});
+	};
+
+/**
+ * Type for subscribing to an event and returning a promise that resolves when the event is triggered.
+ *
+ * @template Event - The event description type.
+ *
+ * @example
+ * // Define event descriptions
+ * type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>;
+ *
+ * // Create an event emitter
+ * const [subscribe, emit] = createEventEmitter<MyEvents>();
+ *
+ * // Use the `awaited` utility to subscribe to the `userConnected` event and return a promise
+ * const awaitedSubscribe = awaited(subscribe);
+ *
+ * awaitedSubscribe('userConnected').then((data) => {
+ *   console.log(`User ${data.userId} connected at ${data.timestamp}`);
+ * });
+ *
+ * // Emit the `userConnected` event
+ * emit('userConnected', { userId: 'user123', timestamp: new Date() });
+ */
+export type SubscribeAwaited<Event extends EventDescription<string, UnsafeAny>> = <
+	EventType extends keyof Event & string
+>(
+	eventName: EventType
+) => Promise<Event[EventType]>;
+
+/**
+ * Utility function to subscribe to an event and return a promise that resolves when the event is triggered.
+ * It automatically unsubscribes after the event is handled.
+ *
+ * @template Event - The event description type.
+ * @param subscribe - The original `subscribe` function to wrap with the `awaited` functionality.
+ * @returns A function that subscribes to an event and returns a promise that resolves with the event data.
+ */
+export const awaited =
+	<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event> =>
+	<EventType extends keyof Event & string>(eventName: EventType) =>
+		new Promise<Event[EventType]>(resolve => {
+			const unsubscribe = subscribe(eventName, (_, data) => {
+				unsubscribe();
+				resolve(data);
+			});
+		});

@@ -1,5 +1,7 @@
 import {
+	awaited,
 	createEventEmitter,
+	once,
 	type EmitEvent,
 	type EventDescription,
 	type SubscribeEvent,
@@ -151,5 +153,44 @@ describe("createEventEmitter", () => {
 			emit("userLogin", { userId: "user1", timestamp: new Date() });
 			emit("userLogout", { userId: "user1", timestamp: new Date() });
 		}).not.toThrow();
+	});
+	it("should trigger the listener only once using `once`", () => {
+		const logUserLogin = jest.fn();
+		const onceSubscribe = once(subscribe);
+
+		onceSubscribe("userLogin", logUserLogin);
+
+		emit("userLogin", { userId: "user1", timestamp: new Date() });
+		emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+		expect(logUserLogin).toHaveBeenCalledTimes(1);
+	});
+	it("should resolve the promise with event data using `awaited`", async () => {
+		const awaitedSubscribe = awaited(subscribe);
+
+		const loginPromise = awaitedSubscribe("userLogin");
+
+		emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+		const result = await loginPromise;
+
+		expect(result).toEqual({ userId: "user1", timestamp: expect.any(Date) });
+	});
+
+	it("should not resolve the `awaited` promise if the event does not occur", async () => {
+		const awaitedSubscribe = awaited(subscribe);
+
+		const loginPromise = awaitedSubscribe("userLogin");
+
+		// Emit a different event
+		emit("userLogout", { userId: "user1", timestamp: new Date() });
+
+		// Ensure the promise is still pending by using a timeout
+		const isStillPending = await Promise.race([
+			loginPromise.then(() => false),
+			new Promise<boolean>(resolve => setTimeout(() => resolve(true), 100))
+		]);
+
+		expect(isStillPending).toBe(true);
 	});
 });

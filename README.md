@@ -15,6 +15,11 @@ Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion 
 		- [What is a Predicate?](#what-is-a-predicate)
 		- [Using a Predicate](#using-a-predicate)
 	- [3. Unsubscribing from Events](#3-unsubscribing-from-events)
+	- [4. Subscribing Once to an Event](#4-subscribing-once-to-an-event)
+		- [Using `once`](#using-once)
+	- [5. Waiting for an Event with a Promise](#5-waiting-for-an-event-with-a-promise)
+		- [Using `awaited`](#using-awaited)
+	- [Commonalities Between `once` and `awaited`](#commonalities-between-once-and-awaited)
 - [API Reference](#api-reference)
 - [Comparison: `miko` vs. Node.js EventEmitter API](#comparison-miko-vs-nodejs-eventemitter-api)
 	- [Overview](#overview)
@@ -207,6 +212,74 @@ unsubscribeAll('userLogin');
 unsubscribeAll();
 ```
 
+### 4. Subscribing Once to an Event
+
+The `once` utility function allows you to subscribe to an event and automatically unsubscribe after the event is triggered for the first time. This is useful when you only need to handle an event a single time.
+
+#### Using `once`
+
+```typescript
+import { EventDescription, createEventEmitter, once } from 'miko';
+
+// Define event descriptions for user events
+type UserEvents = EventDescription<'userLogin', { userId: string; timestamp: Date }>;
+
+// Create an event emitter
+const [subscribe, emit] = createEventEmitter<UserEvents>();
+
+// Subscribe to the 'userLogin' event only once
+const onceSubscribe = once(subscribe);
+
+onceSubscribe('userLogin', (eventName, data) => {
+    console.log(`User ${data.userId} logged in at ${data.timestamp}`);
+});
+
+// Emit the event twice
+emit('userLogin', { userId: 'user123', timestamp: new Date() });
+emit('userLogin', { userId: 'user123', timestamp: new Date() }); // This will not trigger the listener
+```
+
+### 5. Waiting for an Event with a Promise
+
+The `awaited` utility function allows you to subscribe to an event and return a promise that resolves when the event is triggered. This is useful for handling asynchronous events in a promise-based workflow.
+
+#### Using `awaited`
+
+```typescript
+import { EventDescription, createEventEmitter, awaited } from 'miko';
+
+// Define event descriptions for user events
+type UserEvents = EventDescription<'userLogin', { userId: string; timestamp: Date }>;
+
+// Create an event emitter
+const [subscribe, emit] = createEventEmitter<UserEvents>();
+
+// Subscribe to the 'userLogin' event and return a promise
+const awaitedSubscribe = awaited(subscribe);
+
+awaitedSubscribe('userLogin').then((data) => {
+    console.log(`User ${data.userId} logged in at ${data.timestamp}`);
+});
+
+// Emit the event
+emit('userLogin', { userId: 'user123', timestamp: new Date() });
+```
+
+### Commonalities Between `once` and `awaited`
+
+Both `once` and `awaited` utilities are designed to handle a single occurrence of an event, and they automatically unsubscribe after the event is triggered. 
+
+- **Type Safety**: Both `once` and `awaited` are type-safe, ensuring that the event data adheres to the defined types, reducing the risk of runtime errors.
+- **Automatic Unsubscription**: After the event is triggered once, both utilities automatically unsubscribe, preventing any further triggers of the event.
+  
+**Key Difference**:
+
+- **Callback vs. Promise**: 
+  - `once` is callback-based, allowing you to pass a function that will be invoked when the event occurs.
+  - `awaited` utilizes the Promise API, returning a promise that resolves with the event data, making it ideal for asynchronous workflows.
+
+By understanding these commonalities and differences, you can choose the right tool based on your specific use case and coding style preferences.
+
 ## API Reference
 
 - **`EventDescription<EventType extends string, EventDataType = void>`**: Describes an event mapping where each event type is associated with a data type.
@@ -215,6 +288,10 @@ unsubscribeAll();
 - **`EmitEvent<Event extends EventDescription<string, UnsafeAny>>`**: Function type to emit an event with the associated data.
 - **`UnsubscribeEvent`**: Function type to unsubscribe a specific event listener.
 - **`UnsubscribeAllEvents<Event extends EventDescription<string, UnsafeAny>>`**: Function type to unsubscribe all listeners for a specific event or all events.
+- **`SubscribeOnce<Event extends EventDescription<string, UnsafeAny>>`**: Function type to subscribe to an event that automatically unsubscribes after being triggered once.
+- **`once<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeOnce<Event>`**: Utility function to create a subscription that triggers only once and then automatically unsubscribes.
+- **`SubscribeAwaited<Event extends EventDescription<string, UnsafeAny>>`**: Function type to subscribe to an event and return a promise that resolves when the event is triggered.
+- **`awaited<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event>`**: Utility function that returns a promise that resolves when the specified event is triggered, automatically unsubscribing afterward.
 
 ## Comparison: `miko` vs. Node.js EventEmitter API
 
