@@ -537,6 +537,9 @@ export const createEventEmitter: EventEmitterCreator = <Event extends EventDescr
 			return;
 		}
 		eventsStore.delete(eventName);
+		if (eventsStore.size === 0) {
+			eventsStore = undefined;
+		}
 	};
 
 	// Return the functions to subscribe, emit, and unsubscribe all listeners
