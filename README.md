@@ -286,15 +286,15 @@ By understanding these commonalities and differences, you can choose the right t
 ## API Reference
 
 - **`EventDescription<EventType extends string, EventDataType = void>`**: Describes an event mapping where each event type is associated with a data type.
-- **`createEventEmitter<Event extends EventDescription<string, UnsafeAny>>()`**: Creates an event emitter providing `subscribe`, `emit`, and `unsubscribeAll` functions.
-- **`SubscribeEvent<Event extends EventDescription<string, UnsafeAny>>`**: Function type to subscribe to an event, optionally with a predicate.
-- **`EmitEvent<Event extends EventDescription<string, UnsafeAny>>`**: Function type to emit an event with the associated data.
+- **`createEventEmitter<Event extends EventDescription<string, any> = EventDescription<string, any>>()`**: Creates an event emitter providing `subscribe`, `emit`, and `unsubscribeAll` functions.
+- **`SubscribeEvent<Event extends EventDescription<string, any>>`**: Function type to subscribe to an event, optionally with a predicate.
+- **`EmitEvent<Event extends EventDescription<string, any>>`**: Function type to emit an event with the associated data.
 - **`UnsubscribeEvent`**: Function type to unsubscribe a specific event listener.
-- **`UnsubscribeAllEvents<Event extends EventDescription<string, UnsafeAny>>`**: Function type to unsubscribe all listeners for a specific event or all events.
-- **`SubscribeOnce<Event extends EventDescription<string, UnsafeAny>>`**: Function type to subscribe to an event that automatically unsubscribes after being triggered once.
-- **`once<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeOnce<Event>`**: Utility function to create a subscription that triggers only once and then automatically unsubscribes.
-- **`SubscribeAwaited<Event extends EventDescription<string, UnsafeAny>>`**: Function type to subscribe to an event and return a promise that resolves when the event is triggered.
-- **`awaited<Event extends EventDescription<string, UnsafeAny>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event>`**: Utility function that returns a promise that resolves when the specified event is triggered, automatically unsubscribing afterward.
+- **`UnsubscribeAllEvents<Event extends EventDescription<string, any>>`**: Function type to unsubscribe all listeners for a specific event or all events.
+- **`SubscribeOnce<Event extends EventDescription<string, any>>`**: Function type to subscribe to an event that automatically unsubscribes after being triggered once.
+- **`once<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): SubscribeOnce<Event>`**: Utility function to create a subscription that triggers only once and then automatically unsubscribes.
+- **`SubscribeAwaited<Event extends EventDescription<string, any>>`**: Function type to subscribe to an event and return a promise that resolves when the event is triggered.
+- **`awaited<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event>`**: Utility function that returns a promise that resolves when the specified event is triggered, automatically unsubscribing afterward.
 
 ## Comparison: `miko` vs. Node.js EventEmitter API
 

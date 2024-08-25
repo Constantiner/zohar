@@ -236,46 +236,6 @@ export type EmitEvent<Event extends EventDescription<string, UnsafeAny>> = <Even
 ) => void;
 
 /**
- * Type for creating an event emitter, returning subscribe, emit, and unsubscribeAll functions.
- *
- * @returns A tuple containing the `subscribe`, `emit`, and `unsubscribeAll` functions.
- * @example
- * // Assume we have an event description type for application events
- * type AppEvents = EventDescription<'userLogin' | 'userLogout', { userId: string; timestamp: Date }>;
- *
- * // Create the event emitter using the EventEmitterCreator type
- * const createAppEventEmitter: EventEmitterCreator = createEventEmitter;
- *
- * // Instantiate the event emitter for the AppEvents type
- * const [subscribe, emit, unsubscribeAll] = createAppEventEmitter<AppEvents>();
- *
- * // Example listener function for user login
- * const logUserLogin: EventListener<AppEvents, 'userLogin'> = (eventName, data) => {
- *   console.log(`${data.userId} logged in at ${data.timestamp}`);
- * };
- *
- * // Subscribe to the 'userLogin' event
- * subscribe('userLogin', logUserLogin);
- *
- * // Emit the 'userLogin' event
- * emit('userLogin', { userId: 'user1', timestamp: new Date() }); // This will trigger the 'logUserLogin' listener
- *
- * // Unsubscribe all listeners for the 'userLogin' event
- * unsubscribeAll('userLogin');
- *
- * // Emit the 'userLogin' event again
- * emit('userLogin', { userId: 'user1', timestamp: new Date() }); // No listener will be triggered, since we unsubscribed
- *
- * // Example output before unsubscribe:
- * // user1 logged in at Sat Aug 28 2023 14:35:07 GMT+0000 (Coordinated Universal Time)
- */
-export type EventEmitterCreator = <Event extends EventDescription<string, UnsafeAny>>() => [
-	subscribe: SubscribeEvent<Event>,
-	emit: EmitEvent<Event>,
-	unsubscribeAll: UnsubscribeAllEvents<Event>
-];
-
-/**
  * Structure representing a listener entry with an optional predicate.
  *
  * @template Event - The event description type.
@@ -460,9 +420,9 @@ const resolveEventListeners = <
  * // user1 logged in at Sat Aug 28 2023 14:35:07 GMT+0000 (Coordinated Universal Time)
  * // user1 logged out at Sat Aug 28 2023 14:40:07 GMT+0000 (Coordinated Universal Time)
  */
-export const createEventEmitter: EventEmitterCreator = <
+export const createEventEmitter = <
 	Event extends EventDescription<string, UnsafeAny> = EventDescription<string, UnsafeAny>
->() => {
+>(): [subscribe: SubscribeEvent<Event>, emit: EmitEvent<Event>, unsubscribeAll: UnsubscribeAllEvents<Event>] => {
 	let eventsStore: EventsMap<Event> | undefined;
 
 	// Subscribe to a specific event, adding a listener with an optional predicate
