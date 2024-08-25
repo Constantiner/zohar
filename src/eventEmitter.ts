@@ -40,7 +40,7 @@ export type EventDescription<EventType extends string, EventDataType = void> = {
  */
 export type EventListener<
 	Event extends EventDescription<string, UnsafeAny>,
-	EventType extends keyof Event = keyof Event
+	EventType extends keyof Event & string = keyof Event & string
 > = (eventName: EventType, data: Event[EventType]) => void;
 
 /**
@@ -71,7 +71,7 @@ export type EventListener<
  */
 export type EventPredicate<
 	Event extends EventDescription<string, UnsafeAny>,
-	EventType extends keyof Event = keyof Event
+	EventType extends keyof Event & string = keyof Event & string
 > = (entry: Event[EventType]) => boolean;
 
 /**
@@ -106,7 +106,9 @@ export type EventPredicate<
  * // Unsubscribe the listener
  * unsubscribe();  // This removes the listener for future events
  */
-export type SubscribeEvent<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event>(
+export type SubscribeEvent<Event extends EventDescription<string, UnsafeAny>> = <
+	EventType extends keyof Event & string
+>(
 	eventName: EventType,
 	listener: EventListener<Event, EventType>,
 	predicate?: EventPredicate<Event, EventType>
@@ -186,7 +188,9 @@ export type UnsubscribeEvent = () => boolean;
  * emit('userLogin', { userId: 'user1', timestamp: new Date() }); // No listener will be triggered
  * emit('userLogout', { userId: 'user1', timestamp: new Date() }); // No listener will be triggered
  */
-export type UnsubscribeAllEvents<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event>(
+export type UnsubscribeAllEvents<Event extends EventDescription<string, UnsafeAny>> = <
+	EventType extends keyof Event & string
+>(
 	eventName?: EventType
 ) => void;
 
@@ -226,7 +230,7 @@ export type UnsubscribeAllEvents<Event extends EventDescription<string, UnsafeAn
  * // user1 logged in at Sat Aug 28 2023 14:35:07 GMT+0000 (Coordinated Universal Time)
  * // user1 logged out at Sat Aug 28 2023 14:40:07 GMT+0000 (Coordinated Universal Time)
  */
-export type EmitEvent<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event>(
+export type EmitEvent<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event & string>(
 	eventName: EventType,
 	data: Event[EventType]
 ) => void;
@@ -277,7 +281,7 @@ export type EventEmitterCreator = <Event extends EventDescription<string, Unsafe
  * @template Event - The event description type.
  * @template EventType - The specific event type within the event description.
  */
-type ListenersEntry<Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event> = {
+type ListenersEntry<Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event & string> = {
 	listener: EventListener<Event, EventType>;
 	predicate?: EventPredicate<Event, EventType>;
 };
@@ -288,7 +292,7 @@ type ListenersEntry<Event extends EventDescription<string, UnsafeAny>, EventType
  * @template Event - The event description type.
  * @template EventType - The specific event type within the event description.
  */
-type ListenersMapEntry<Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event> = {
+type ListenersMapEntry<Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event & string> = {
 	currentIndex: number;
 	listeners: Map<number, ListenersEntry<Event, EventType>>;
 };
@@ -300,7 +304,7 @@ type ListenersMapEntry<Event extends EventDescription<string, UnsafeAny>, EventT
  */
 class EventsMap<Event extends EventDescription<string, UnsafeAny>> {
 	// Internal map storing event types and their corresponding listeners
-	private map = new Map<keyof Event, ListenersMapEntry<Event, keyof Event>>();
+	private map = new Map<keyof Event & string, ListenersMapEntry<Event, keyof Event & string>>();
 
 	/**
 	 * Sets a new entry in the map for a specific event type.
@@ -310,8 +314,8 @@ class EventsMap<Event extends EventDescription<string, UnsafeAny>> {
 	 * @param value - The value to set for the event key.
 	 * @returns The current instance for chaining.
 	 */
-	set<K extends keyof Event>(key: K, value: ListenersMapEntry<Event, K>): this {
-		this.map.set(key, <ListenersMapEntry<Event, keyof Event>>value);
+	set<K extends keyof Event & string>(key: K, value: ListenersMapEntry<Event, K>): this {
+		this.map.set(key, <ListenersMapEntry<Event, keyof Event & string>>value);
 		return this;
 	}
 
@@ -322,7 +326,7 @@ class EventsMap<Event extends EventDescription<string, UnsafeAny>> {
 	 * @param key - The event key.
 	 * @returns The entry associated with the event key, or undefined if not found.
 	 */
-	get<K extends keyof Event>(key: K): ListenersMapEntry<Event, K> | undefined {
+	get<K extends keyof Event & string>(key: K): ListenersMapEntry<Event, K> | undefined {
 		return this.map.get(key);
 	}
 
@@ -333,7 +337,7 @@ class EventsMap<Event extends EventDescription<string, UnsafeAny>> {
 	 * @param key - The event key.
 	 * @returns A boolean indicating whether the event key exists in the map.
 	 */
-	has<K extends keyof Event>(key: K): boolean {
+	has<K extends keyof Event & string>(key: K): boolean {
 		return this.map.has(key);
 	}
 
@@ -344,7 +348,7 @@ class EventsMap<Event extends EventDescription<string, UnsafeAny>> {
 	 * @param key - The event key.
 	 * @returns A boolean indicating whether the deletion was successful.
 	 */
-	delete<K extends keyof Event>(key: K): boolean {
+	delete<K extends keyof Event & string>(key: K): boolean {
 		return this.map.delete(key);
 	}
 
@@ -390,7 +394,10 @@ const resolveEventsStore = <Event extends EventDescription<string, UnsafeAny>>(
  * @param eventName - The name of the event to resolve listeners for.
  * @returns The resolved listeners map entry for the specified event type.
  */
-const resolveEventListeners = <Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event>(
+const resolveEventListeners = <
+	Event extends EventDescription<string, UnsafeAny>,
+	EventType extends keyof Event & string
+>(
 	eventsStore: EventsMap<Event>,
 	eventName: EventType
 ): ListenersMapEntry<Event, EventType> => {
@@ -457,7 +464,7 @@ export const createEventEmitter: EventEmitterCreator = <Event extends EventDescr
 	let eventsStore: EventsMap<Event> | undefined;
 
 	// Subscribe to a specific event, adding a listener with an optional predicate
-	const subscribe: SubscribeEvent<Event> = <EventType extends keyof Event>(
+	const subscribe: SubscribeEvent<Event> = <EventType extends keyof Event & string>(
 		eventName: EventType,
 		listener: EventListener<Event, EventType>,
 		predicate?: EventPredicate<Event, EventType>
@@ -498,7 +505,10 @@ export const createEventEmitter: EventEmitterCreator = <Event extends EventDescr
 	};
 
 	// Emit an event, triggering all listeners registered for this event type
-	const emit: EmitEvent<Event> = <EventType extends keyof Event>(eventName: EventType, data: Event[EventType]) => {
+	const emit: EmitEvent<Event> = <EventType extends keyof Event & string>(
+		eventName: EventType,
+		data: Event[EventType]
+	) => {
 		if (!eventsStore) {
 			return;
 		}
@@ -515,7 +525,9 @@ export const createEventEmitter: EventEmitterCreator = <Event extends EventDescr
 	};
 
 	// Unsubscribe all listeners for a specific event or all events
-	const unsubscribeAll: UnsubscribeAllEvents<Event> = <EventType extends keyof Event>(eventName?: EventType) => {
+	const unsubscribeAll: UnsubscribeAllEvents<Event> = <EventType extends keyof Event & string>(
+		eventName?: EventType
+	) => {
 		if (!eventsStore) {
 			return;
 		}
