@@ -1,5 +1,7 @@
 # miko<!-- omit in toc -->
 
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+
 A functional type-safe event emitter library with zero dependencies.
 
 Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion who serves as an intermediary between the gods and people, delivering divine messages. Similarly, the `miko` library acts as a conduit between events and subscribers, efficiently transmitting events to listeners and ensuring seamless, type-safe communication.
@@ -342,7 +344,7 @@ unsubscribeEventB();
 Here’s how you would use the Node.js EventEmitter for similar functionality:
 
 ```typescript
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 
 // Create an instance of EventEmitter
 const eventEmitter = new EventEmitter();
