@@ -460,7 +460,9 @@ const resolveEventListeners = <
  * // user1 logged in at Sat Aug 28 2023 14:35:07 GMT+0000 (Coordinated Universal Time)
  * // user1 logged out at Sat Aug 28 2023 14:40:07 GMT+0000 (Coordinated Universal Time)
  */
-export const createEventEmitter: EventEmitterCreator = <Event extends EventDescription<string, UnsafeAny>>() => {
+export const createEventEmitter: EventEmitterCreator = <
+	Event extends EventDescription<string, UnsafeAny> = EventDescription<string, UnsafeAny>
+>() => {
 	let eventsStore: EventsMap<Event> | undefined;
 
 	// Subscribe to a specific event, adding a listener with an optional predicate
