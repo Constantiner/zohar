@@ -3,6 +3,7 @@ import { fixupPluginRules } from "@eslint/compat";
 import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 import pluginImport from "eslint-plugin-import";
+import jest from "eslint-plugin-jest";
 import nodePlugin from "eslint-plugin-n";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
@@ -39,7 +40,7 @@ function legacyPlugin(name, alias = name) {
 export default config(
 	{
 		// Top-level ignores aka .eslintignore replacement for flat config
-		ignores: [".vscode/**", "build/**", "dist/**", "out/**", "node_modules/**"]
+		ignores: [".vscode/**", "build/**", "dist/**", "out/**", "node_modules/**", "coverage/**"]
 	},
 	js.configs.recommended,
 	...configs.recommended,
@@ -111,6 +112,14 @@ export default config(
 		}
 	},
 	{
+		// Jest
+		files: ["__tests__/**"],
+		...jest.configs["flat/recommended"],
+		rules: {
+			...jest.configs["flat/recommended"].rules
+		}
+	},
+	{
 		files: ["**/*.cjs"],
 		languageOptions: {
 			globals: globals.node,
@@ -154,6 +163,12 @@ export default config(
 		files: ["eslint.config.js"],
 		rules: {
 			"@typescript-eslint/ban-ts-comment": "off"
+		}
+	},
+	{
+		files: ["jest.config*.ts"],
+		rules: {
+			"unicorn/prefer-module": ["off"]
 		}
 	}
 );
