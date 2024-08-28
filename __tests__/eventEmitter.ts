@@ -6,7 +6,7 @@ import {
 	type EventDescription,
 	type SubscribeEvent,
 	type UnsubscribeAllEvents
-} from "../src/eventEmitter.js";
+} from "../src/eventEmitter";
 
 describe("createEventEmitter", () => {
 	type AppEvents = EventDescription<"userLogin" | "userLogout", { userId: string; timestamp: Date }>;
