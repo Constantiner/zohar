@@ -1,6 +1,6 @@
 {
 	"name": "miko",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"private": true,
 	"description": "A functional type-safe event emitter library with zero dependencies",
 	"keywords": [
