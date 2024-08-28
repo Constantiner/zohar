@@ -6,24 +6,90 @@ on:
         branches:
             - main
 
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
+# Default to bash
+defaults:
+    run:
+        shell: bash
+
 jobs:
-    ci:
+    # Lint job
+    lint:
         runs-on: ubuntu-latest
-
         steps:
-            - uses: actions/checkout@v4
-
-            - name: Use Node.js
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Node
               uses: actions/setup-node@v4
               with:
                   node-version: "20"
-
+                  cache: npm
             - name: Install dependencies
               run: npm ci
+            - name: Run lint
+              run: npm run lint
 
-            - name: Run CI
-              run: npm run ci
+    # Test job
+    test:
+        runs-on: ubuntu-latest
+        needs: lint
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: npm
+            - name: Install dependencies
+              run: npm ci
+            - name: Run tests
+              run: npm run test:coverage
+    # Build job
+    build:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: npm
+            - name: Install dependencies
+              run: npm ci
+            - name: Run build
+              run: npm run build
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: miko-build
+                  path: ./dist
+    # Check exports job
+    check-exports:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Dounload build artifact
+              uses: actions/download-artifact@v4
+              with:
+                  path: ./dist
+                  name: miko-build
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: npm
+            - name: Install dependencies
+              run: npm ci
+            - name: Run check exports
+              run: npm run check-exports
