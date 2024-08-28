@@ -1,10 +1,10 @@
-# miko<!-- omit in toc -->
+# zohar<!-- omit in toc -->
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
 
 A functional type-safe event emitter library with zero dependencies.
 
-Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion who serves as an intermediary between the gods and people, delivering divine messages. Similarly, the `miko` library acts as a conduit between events and subscribers, efficiently transmitting events to listeners and ensuring seamless, type-safe communication.
+**Zohar** draws its name from both the Xeno series, where it represents a powerful and mysterious source of energy facilitating connections between different realms, and from Kabbalistic tradition, where it symbolizes "Splendor" or "Radiance," offering deep insight into the hidden workings of the universe. Just as the **Zohar** illuminates and connects various aspects of reality, the `Zohar` library provides a versatile, type-safe mechanism for transmitting events across different parts of your application, ensuring seamless communication and coordination.
 
 - [Features](#features)
 - [Installation](#installation)
@@ -23,14 +23,14 @@ Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion 
 		- [Using `awaited`](#using-awaited)
 	- [Commonalities Between `once` and `awaited`](#commonalities-between-once-and-awaited)
 - [API Reference](#api-reference)
-- [Comparison: `miko` vs. Node.js EventEmitter API](#comparison-miko-vs-nodejs-eventemitter-api)
+- [Comparison: `zohar` vs. Node.js EventEmitter API](#comparison-zohar-vs-nodejs-eventemitter-api)
 	- [Overview](#overview)
 	- [Usage Comparison](#usage-comparison)
-		- [Example: Using `miko`](#example-using-miko)
+		- [Example: Using `zohar`](#example-using-zohar)
 		- [Example: Using Node.js EventEmitter](#example-using-nodejs-eventemitter)
 	- [Type Safety and Unsubscription Perspective](#type-safety-and-unsubscription-perspective)
 	- [Pros and Cons](#pros-and-cons)
-		- [`miko`](#miko-1)
+		- [`zohar`](#zohar-1)
 		- [Node.js EventEmitter](#nodejs-eventemitter)
 	- [Conclusion](#conclusion)
 - [Usage Examples](#usage-examples)
@@ -63,13 +63,13 @@ Miko (巫女) refers to a traditional shrine maiden in Japanese Shinto religion 
 Install the library using npm or yarn:
 
 ```bash
-npm install miko
+npm install zohar
 ```
 
 or
 
 ```bash
-yarn add miko
+yarn add zohar
 ```
 
 ## Usage
@@ -81,7 +81,7 @@ yarn add miko
 For scenarios where events have various data types, you can define a generic event description:
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define a generic event description
 type GenericEvents = EventDescription<string, any>;
@@ -103,7 +103,7 @@ emit('someEvent', { message: 'Hello World!' });
 In cases where different events share the same data structure, you can define the event description accordingly:
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define event descriptions for user events
 type UserEvents = EventDescription<'userLogin' | 'userLogout', { userId: string; timestamp: Date }>;
@@ -131,7 +131,7 @@ emit('userLogout', { userId: 'user123', timestamp: new Date() });
 If you have events with different data structures, you can combine event descriptions:
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define event descriptions with varying data types
 type UserEvents = EventDescription<'userLogin' | 'userLogout', { userId: string; timestamp: Date }>
@@ -176,7 +176,7 @@ This feature allows you to filter events, ensuring that only specific events tha
 For example, you might want to listen to a `userLogin` event only if the `userId` matches a specific value:
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define event descriptions for user events
 type UserEvents = EventDescription<'userLogin' | 'userLogout', { userId: string; timestamp: Date }>;
@@ -222,7 +222,7 @@ The `once` utility function allows you to subscribe to an event and automaticall
 #### Using `once`
 
 ```typescript
-import { EventDescription, createEventEmitter, once } from 'miko';
+import { EventDescription, createEventEmitter, once } from 'zohar';
 
 // Define event descriptions for user events
 type UserEvents = EventDescription<'userLogin', { userId: string; timestamp: Date }>;
@@ -249,7 +249,7 @@ The `awaited` utility function allows you to subscribe to an event and return a 
 #### Using `awaited`
 
 ```typescript
-import { EventDescription, createEventEmitter, awaited } from 'miko';
+import { EventDescription, createEventEmitter, awaited } from 'zohar';
 
 // Define event descriptions for user events
 type UserEvents = EventDescription<'userLogin', { userId: string; timestamp: Date }>;
@@ -296,23 +296,23 @@ By understanding these commonalities and differences, you can choose the right t
 - **`SubscribeAwaited<Event extends EventDescription<string, any>>`**: Function type to subscribe to an event and return a promise that resolves when the event is triggered.
 - **`awaited<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event>`**: Utility function that returns a promise that resolves when the specified event is triggered, automatically unsubscribing afterward.
 
-## Comparison: `miko` vs. Node.js EventEmitter API
+## Comparison: `zohar` vs. Node.js EventEmitter API
 
-The `miko` library and Node.js's built-in `EventEmitter` API serve similar purposes: both are used to emit and listen to events in an application. However, they differ significantly in their design, especially regarding type safety and ease of use when unsubscribing from events.
+The `zohar` library and Node.js's built-in `EventEmitter` API serve similar purposes: both are used to emit and listen to events in an application. However, they differ significantly in their design, especially regarding type safety and ease of use when unsubscribing from events.
 
 ### Overview
 
-- **`miko`**: A functional, type-safe event emitter library designed for TypeScript. It emphasizes type safety, ensuring that emitted events and their associated data types are correctly managed. It also simplifies subscription management by returning an `unsubscribe` function.
+- **`zohar`**: A functional, type-safe event emitter library designed for TypeScript. It emphasizes type safety, ensuring that emitted events and their associated data types are correctly managed. It also simplifies subscription management by returning an `unsubscribe` function.
 - **Node.js EventEmitter**: A widely-used, built-in event emitter API in Node.js. It is flexible but lacks native type safety, which can lead to runtime errors if not used carefully. Managing event unsubscription can be more cumbersome.
 
 ### Usage Comparison
 
-#### Example: Using `miko`
+#### Example: Using `zohar`
 
-Here’s how you would use `miko` for type-safe event handling:
+Here’s how you would use `zohar` for type-safe event handling:
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define event descriptions with specific types
 type MyEvents = 
@@ -374,10 +374,10 @@ eventEmitter.off('eventB', onEventB);
 
 ### Type Safety and Unsubscription Perspective
 
-- **`miko`**:
-  - **Type-Safe by Design**: In `miko`, event names and associated data types are defined upfront, ensuring that only valid events with the correct data structure can be emitted. TypeScript will catch any mismatches at compile time, significantly reducing the risk of runtime errors.
+- **`zohar`**:
+  - **Type-Safe by Design**: In `zohar`, event names and associated data types are defined upfront, ensuring that only valid events with the correct data structure can be emitted. TypeScript will catch any mismatches at compile time, significantly reducing the risk of runtime errors.
   - **Type Inference**: When you emit or subscribe to an event, TypeScript knows exactly what data type is expected, offering full type inference and autocompletion within your IDE.
-  - **Simple Unsubscription**: The `subscribe` function in `miko` returns an `unsubscribe` function, making it easy to remove listeners even when they are defined inline. This avoids the complexity of managing listener references manually.
+  - **Simple Unsubscription**: The `subscribe` function in `zohar` returns an `unsubscribe` function, making it easy to remove listeners even when they are defined inline. This avoids the complexity of managing listener references manually.
 
 - **Node.js EventEmitter**: 
   - **No Native Type Safety**: The Node.js EventEmitter API is inherently untyped, meaning you can emit any event with any data, and TypeScript won't provide any safety checks. This can lead to potential runtime errors if the wrong data is emitted or if a listener expects a different data structure.
@@ -385,15 +385,15 @@ eventEmitter.off('eventB', onEventB);
 
 ### Pros and Cons
 
-#### `miko`
+#### `zohar`
 
 **Pros**:
 
 - **Strong Type Safety**: Prevents runtime errors by enforcing event types and data structures at compile time.
 - **Cleaner Code**: Type-safe events lead to more maintainable and readable code, as the expected structure is always clear.
 - **IDE Support**: Full TypeScript support with autocompletion and type inference.
-- **No Instance Required**: Unlike traditional event emitters that require an instance, `miko` directly provides the `subscribe` and `emit` functions, making them ready to use without needing to create or manage an emitter object.
-- **Better Separation of Concerns**: Since `miko` provides just functions, it's easier to split emitter and consumer functionalities across different modules or components. This makes the code more modular and aligns well with the principles of separation of concerns.
+- **No Instance Required**: Unlike traditional event emitters that require an instance, `zohar` directly provides the `subscribe` and `emit` functions, making them ready to use without needing to create or manage an emitter object.
+- **Better Separation of Concerns**: Since `zohar` provides just functions, it's easier to split emitter and consumer functionalities across different modules or components. This makes the code more modular and aligns well with the principles of separation of concerns.
 - **Easier Unsubscription**: The `unsubscribe` function returned by `subscribe` makes it straightforward to remove listeners, even if they are defined inline, reducing the risk of accidentally leaving listeners active.
 
 **Cons**:
@@ -418,7 +418,7 @@ eventEmitter.off('eventB', onEventB);
 
 ### Conclusion
 
-- **When to Use `miko`**: If you’re working on a TypeScript project where maintaining type safety and avoiding runtime errors is critical, `miko` is the better choice. It provides strong type guarantees, making your codebase more robust and easier to maintain. Additionally, if you prefer functional programming and want a clear separation between event producers and consumers, `miko` offers a cleaner, more modular approach with simpler unsubscription.
+- **When to Use `zohar`**: If you’re working on a TypeScript project where maintaining type safety and avoiding runtime errors is critical, `zohar` is the better choice. It provides strong type guarantees, making your codebase more robust and easier to maintain. Additionally, if you prefer functional programming and want a clear separation between event producers and consumers, `zohar` offers a cleaner, more modular approach with simpler unsubscription.
   
 - **When to Use Node.js EventEmitter**: If you’re in a Node.js environment and need a quick and flexible event emitter for a smaller, simpler project, the built-in EventEmitter might suffice, but be aware of the potential for type-related issues, the need to manage instances, and the complexity of handling unsubscriptions.
 
@@ -433,7 +433,7 @@ The Chat Module handles all internal chat logic and emits events when users conn
 The Chat Module is implemented as a functional module that encapsulates all chat-related logic. It emits events internally when users perform actions such as connecting, disconnecting, or sending messages. The module exposes only a `subscribe` function (`onChatEvent`) for external use.
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define distinct event descriptions for the chat application
 type ChatEvents = 
@@ -537,14 +537,14 @@ The Chat Module provides a straightforward API for subscribing to and unsubscrib
 
 ### One-Time Login Event Handling with `awaited` and `once`
 
-The following example demonstrates how to handle a one-time login event in a browser environment using the `miko` library's `awaited` and `once` utility functions. The login process is encapsulated within a fictional module that interacts with an API and emits various events based on different operations. For illustration purposes, we focus on handling the `login` event.
+The following example demonstrates how to handle a one-time login event in a browser environment using the `zohar` library's `awaited` and `once` utility functions. The login process is encapsulated within a fictional module that interacts with an API and emits various events based on different operations. For illustration purposes, we focus on handling the `login` event.
 
 #### Login Module Implementation
 
 This fictional module simulates an API login request. It emits a single `login` event with a discriminated union type that indicates whether the login was successful or not. The module could emit other events as well, but here we illustrate the usage of the `login` event. The module exposes a specific function, `onLoginEvent`, for subscribing to the `login` event.
 
 ```typescript
-import { EventDescription, createEventEmitter } from 'miko';
+import { EventDescription, createEventEmitter } from 'zohar';
 
 // Define event descriptions with a discriminated union for login results
 type LoginResult = 
@@ -593,7 +593,7 @@ The consumer uses the `awaited` function to wait for the `login` event. The func
 
 ```typescript
 import { onLoginEvent, login } from './loginService';
-import { awaited } from 'miko';
+import { awaited } from 'zohar';
 
 async function attemptLogin(username: string, password: string): Promise<{ userId: string; token: string }> {
     // Trigger the login process
@@ -628,7 +628,7 @@ Alternatively, the consumer can use the `once` function to handle the `login` ev
 
 ```typescript
 import { onLoginEvent, login } from './loginService';
-import { once } from 'miko';
+import { once } from 'zohar';
 
 // Use the `once` function to handle the `login` event
 const onceSubscribe = once(onLoginEvent);
@@ -654,7 +654,7 @@ login('correctUser', 'correctPassword');
 
 #### Login Module Summary
 
-This implementation demonstrates how to handle a one-time login event using the `miko` event emitter library with both the `awaited` and `once` utility functions. The login module is fictional and is designed to illustrate the usage of the `miko` library in handling events, specifically focusing on the `login` event. The module could emit other events, but the examples provided focus on demonstrating two different approaches to handling a single `login` event in a promise-based and callback-based manner. This approach is particularly useful when you want to handle events asynchronously, with automatic subscription management and a unified way to handle both success and failure outcomes.
+This implementation demonstrates how to handle a one-time login event using the `zohar` event emitter library with both the `awaited` and `once` utility functions. The login module is fictional and is designed to illustrate the usage of the `zohar` library in handling events, specifically focusing on the `login` event. The module could emit other events, but the examples provided focus on demonstrating two different approaches to handling a single `login` event in a promise-based and callback-based manner. This approach is particularly useful when you want to handle events asynchronously, with automatic subscription management and a unified way to handle both success and failure outcomes.
 
 ## License
 

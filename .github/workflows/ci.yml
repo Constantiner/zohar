@@ -70,7 +70,7 @@ jobs:
             - name: Upload build artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: miko-build
+                  name: zohar-build
                   path: ./dist
     # Check exports job
     check-exports:
@@ -83,7 +83,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   path: ./dist
-                  name: miko-build
+                  name: zohar-build
             - name: Setup Node
               uses: actions/setup-node@v4
               with:

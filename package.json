@@ -1,5 +1,5 @@
 {
-	"name": "miko",
+	"name": "zohar",
 	"version": "0.0.2",
 	"private": true,
 	"description": "A functional type-safe event emitter library with zero dependencies",
@@ -9,13 +9,13 @@
 		"event emitter",
 		"javascript"
 	],
-	"homepage": "https://github.com/Constantiner/miko#readme",
+	"homepage": "https://github.com/Constantiner/zohar#readme",
 	"bugs": {
-		"url": "https://github.com/Constantiner/miko/issues"
+		"url": "https://github.com/Constantiner/zohar/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Constantiner/miko.git"
+		"url": "git+https://github.com/Constantiner/zohar.git"
 	},
 	"license": "MIT",
 	"author": {
@@ -60,7 +60,7 @@
 		"@types/jest": "^29.5.12",
 		"eslint": "^9.9.1",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-import-resolver-typescript": "^3.6.1",
+		"eslint-import-resolver-typescript": "^3.6.3",
 		"eslint-plugin-import": "^2.29.1",
 		"eslint-plugin-jest": "^28.8.0",
 		"eslint-plugin-n": "^17.10.2",
@@ -76,6 +76,6 @@
 		"ts-node": "^10.9.2",
 		"tsup": "^8.2.4",
 		"typescript": "^5.5.4",
-		"typescript-eslint": "^8.2.0"
+		"typescript-eslint": "^8.3.0"
 	}
 }
