@@ -75,7 +75,7 @@ jobs:
     # Check exports job
     check-exports:
         runs-on: ubuntu-latest
-        needs: test
+        needs: build
         steps:
             - name: Checkout
               uses: actions/checkout@v4
