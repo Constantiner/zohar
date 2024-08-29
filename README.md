@@ -1,6 +1,6 @@
 # zohar<!-- omit in toc -->
 
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua) [![NPM Version](https://img.shields.io/npm/v/zohar.svg)](https://www.npmjs.com/package/zohar) [![codecov](https://codecov.io/github/Constantiner/zohar/graph/badge.svg?token=3Z4EGIP41Y)](https://codecov.io/github/Constantiner/zohar)
 
 A functional type-safe event emitter library with zero dependencies.
 
