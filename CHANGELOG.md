@@ -1,5 +1,11 @@
 # zohar
 
+## 1.0.1
+
+### Patch Changes
+
+-   7e8c175: Add Zohar logo
+
 ## 1.0.0
 
 ### Major Changes
