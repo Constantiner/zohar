@@ -2,4 +2,4 @@
 "zohar": major
 ---
 
-Ready for release
+Ready for release.
