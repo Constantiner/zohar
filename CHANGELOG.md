@@ -1,5 +1,11 @@
 # zohar
 
+## 1.0.0
+
+### Major Changes
+
+-   60aa908: Ready for release.
+
 ## 0.0.3
 
 ### Patch Changes
