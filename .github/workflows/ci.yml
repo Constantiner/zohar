@@ -51,6 +51,8 @@ jobs:
               run: npm ci
             - name: Run tests
               run: npm run test:coverage
+            - name: Upload Code Coverage
+              uses: codecov/codecov-action@v3.1.0
     # Build job
     build:
         runs-on: ubuntu-latest
