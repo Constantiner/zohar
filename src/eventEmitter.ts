@@ -596,3 +596,156 @@ export const awaited =
 				resolve(data);
 			});
 		});
+
+/**
+ * Type for a specialized event listener that doesn't include the event name parameter.
+ *
+ * @template Event - The event description type.
+ * @template EventType - The specific event type within the event description.
+ */
+export type SpecializedEventListener<
+	Event extends EventDescription<string, UnsafeAny>,
+	EventType extends keyof Event & string
+> = (data: Event[EventType]) => void;
+
+/**
+ * Type for a specialized subscription function for a specific event type.
+ *
+ * @template Event - The event description type.
+ * @template EventType - The specific event type to subscribe to.
+ */
+export type EventSubscriber<
+	Event extends EventDescription<string, UnsafeAny>,
+	EventType extends keyof Event & string
+> = (
+	listener: SpecializedEventListener<Event, EventType>,
+	predicate?: EventPredicate<Event, EventType>
+) => UnsubscribeEvent;
+
+/**
+ * Type for a factory function that creates specialized subscription functions for specific event types.
+ *
+ * @template Event - The event description type.
+ */
+export type EventSubscriberFactory<Event extends EventDescription<string, UnsafeAny>> = <
+	EventType extends keyof Event & string
+>(
+	eventName: EventType
+) => EventSubscriber<Event, EventType>;
+
+/**
+ * Creates a factory function that can create specialized subscription functions for any event type.
+ *
+ * @template Event - The event description type.
+ * @param subscribe - The original subscribe function from createEventEmitter.
+ * @returns A factory function that creates specialized subscription functions for specific event types.
+ *
+ * @example
+ * // Define event descriptions with different data types using intersection types
+ * type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>
+ *   & EventDescription<'userDisconnected', { userId: string; timestamp: Date; reason: 'timeout' | 'manual' | 'error' }>;
+ *
+ * // Create an event emitter
+ * const [subscribe, emit] = createEventEmitter<MyEvents>();
+ *
+ * // Create a factory function for specialized subscribers
+ * const subscriber = subscriber(subscribe);
+ *
+ * // Create specialized subscription functions for different events
+ * const onUserConnected = subscriber('userConnected');
+ * const onUserDisconnected = subscriber('userDisconnected');
+ *
+ * // Use the specialized subscription functions
+ * onUserConnected((data) => {
+ *   console.log(`User ${data.userId} connected at ${data.timestamp}`);
+ * });
+ *
+ * onUserDisconnected((data) => {
+ *   console.log(`User ${data.userId} disconnected at ${data.timestamp} due to ${data.reason}`);
+ * });
+ *
+ * // Emit events
+ * emit('userConnected', { userId: 'user123', timestamp: new Date() });
+ * emit('userDisconnected', {
+ *   userId: 'user123',
+ *   timestamp: new Date(),
+ *   reason: 'timeout' // TypeScript ensures this is one of: 'timeout' | 'manual' | 'error'
+ * });
+ */
+export const subscriber =
+	<Event extends EventDescription<string, UnsafeAny>>(
+		subscribe: SubscribeEvent<Event>
+	): EventSubscriberFactory<Event> =>
+	eventName =>
+	(listener, predicate) =>
+		subscribe(eventName, (_, data) => listener(data), predicate);
+
+/**
+ * Type for a specialized emit function for a specific event type.
+ *
+ * @template Event - The event description type.
+ * @template EventType - The specific event type to emit.
+ */
+export type EventEmitter<Event extends EventDescription<string, UnsafeAny>, EventType extends keyof Event & string> = (
+	data: Event[EventType]
+) => void;
+
+/**
+ * Type for a factory function that creates specialized emit functions for specific event types.
+ *
+ * @template Event - The event description type.
+ */
+export type EventEmitterFactory<Event extends EventDescription<string, UnsafeAny>> = <
+	EventType extends keyof Event & string
+>(
+	eventName: EventType
+) => EventEmitter<Event, EventType>;
+
+/**
+ * Creates a factory function that can create specialized emit functions for any event type.
+ *
+ * @template Event - The event description type.
+ * @param emit - The original emit function from createEventEmitter.
+ * @returns A factory function that creates specialized emit functions for specific event types.
+ *
+ * @example
+ * // Define event descriptions with different data types using intersection types
+ * type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>
+ *   & EventDescription<'userDisconnected', { userId: string; timestamp: Date; reason: 'timeout' | 'manual' | 'error' }>;
+ *
+ * // Create an event emitter
+ * const [subscribe, emit] = createEventEmitter<MyEvents>();
+ *
+ * // Create factory functions for specialized subscribers and emitters
+ * const subscriber = subscriber(subscribe);
+ * const emitter = emitter(emit);
+ *
+ * // Create specialized subscription and emit functions for different events
+ * const onUserConnected = subscriber('userConnected');
+ * const emitUserConnected = emitter('userConnected');
+ *
+ * const onUserDisconnected = subscriber('userDisconnected');
+ * const emitUserDisconnected = emitter('userDisconnected');
+ *
+ * // Use the specialized subscription functions
+ * onUserConnected((data) => {
+ *   console.log(`User ${data.userId} connected at ${data.timestamp}`);
+ * });
+ *
+ * onUserDisconnected((data) => {
+ *   console.log(`User ${data.userId} disconnected at ${data.timestamp} due to ${data.reason}`);
+ * });
+ *
+ * // Use the specialized emit functions
+ * emitUserConnected({ userId: 'user123', timestamp: new Date() });
+ * emitUserDisconnected({
+ *   userId: 'user123',
+ *   timestamp: new Date(),
+ *   reason: 'timeout' // TypeScript ensures this is one of: 'timeout' | 'manual' | 'error'
+ * });
+ */
+export const emitter =
+	<Event extends EventDescription<string, UnsafeAny>>(emit: EmitEvent<Event>): EventEmitterFactory<Event> =>
+	eventName =>
+	data =>
+		emit(eventName, data);

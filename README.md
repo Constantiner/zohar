@@ -24,6 +24,12 @@ A functional type-safe event emitter library with zero dependencies.
 	- [5. Waiting for an Event with a Promise](#5-waiting-for-an-event-with-a-promise)
 		- [Using `awaited`](#using-awaited)
 	- [Commonalities Between `once` and `awaited`](#commonalities-between-once-and-awaited)
+	- [6. Creating Specialized Subscription Functions with `subscriber`](#6-creating-specialized-subscription-functions-with-subscriber)
+		- [Using `subscriber`](#using-subscriber)
+	- [7. Creating Specialized Emit Functions with `emitter`](#7-creating-specialized-emit-functions-with-emitter)
+		- [Using `emitter`](#using-emitter)
+	- [Benefits of Using `subscriber` and `emitter`](#benefits-of-using-subscriber-and-emitter)
+	- [Common Use Cases](#common-use-cases)
 - [API Reference](#api-reference)
 - [Comparison: `zohar` vs. Node.js EventEmitter API](#comparison-zohar-vs-nodejs-eventemitter-api)
 	- [Overview](#overview)
@@ -272,18 +278,206 @@ emit('userLogin', { userId: 'user123', timestamp: new Date() });
 
 ### Commonalities Between `once` and `awaited`
 
-Both `once` and `awaited` utilities are designed to handle a single occurrence of an event, and they automatically unsubscribe after the event is triggered. 
+Both `once` and `awaited` utilities are designed to handle a single occurrence of an event, and they automatically unsubscribe after the event is triggered.
 
 - **Type Safety**: Both `once` and `awaited` are type-safe, ensuring that the event data adheres to the defined types, reducing the risk of runtime errors.
 - **Automatic Unsubscription**: After the event is triggered once, both utilities automatically unsubscribe, preventing any further triggers of the event.
   
 **Key Difference**:
 
-- **Callback vs. Promise**: 
+- **Callback vs. Promise**:
   - `once` is callback-based, allowing you to pass a function that will be invoked when the event occurs.
   - `awaited` utilizes the Promise API, returning a promise that resolves with the event data, making it ideal for asynchronous workflows.
 
 By understanding these commonalities and differences, you can choose the right tool based on your specific use case and coding style preferences.
+
+### 6. Creating Specialized Subscription Functions with `subscriber`
+
+The `subscriber` helper function creates specialized subscription functions for specific event types. This makes the API more ergonomic by removing the need to specify the event name in the listener function.
+
+#### Using `subscriber`
+
+```typescript
+import { EventDescription, createEventEmitter, subscriber } from 'zohar';
+
+// Define event descriptions with different data types using intersection types
+type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>
+  & EventDescription<'userDisconnected', { userId: string; timestamp: Date; reason: 'timeout' | 'manual' | 'error' }>;
+
+// Create an event emitter
+const [subscribe, emit] = createEventEmitter<MyEvents>();
+
+// Create a factory function for specialized subscribers
+const createSubscriber = subscriber(subscribe);
+
+// Create specialized subscription functions for different events
+const onUserConnected = createSubscriber('userConnected');
+const onUserDisconnected = createSubscriber('userDisconnected');
+
+// Use the specialized subscription functions
+onUserConnected((data) => {
+  console.log(`User ${data.userId} connected at ${data.timestamp}`);
+});
+
+onUserDisconnected((data) => {
+  console.log(`User ${data.userId} disconnected at ${data.timestamp} due to ${data.reason}`);
+});
+
+// Emit events
+emit('userConnected', { userId: 'user123', timestamp: new Date() });
+emit('userDisconnected', {
+  userId: 'user123',
+  timestamp: new Date(),
+  reason: 'timeout' // TypeScript ensures this is one of: 'timeout' | 'manual' | 'error'
+});
+```
+
+### 7. Creating Specialized Emit Functions with `emitter`
+
+The `emitter` helper function creates specialized emit functions for specific event types. This makes the API more ergonomic by removing the need to specify the event name when emitting events.
+
+#### Using `emitter`
+
+```typescript
+import { EventDescription, createEventEmitter, subscriber, emitter } from 'zohar';
+
+// Define event descriptions with different data types using intersection types
+type MyEvents = EventDescription<'userConnected', { userId: string; timestamp: Date }>
+  & EventDescription<'userDisconnected', { userId: string; timestamp: Date; reason: 'timeout' | 'manual' | 'error' }>;
+
+// Create an event emitter
+const [subscribe, emit] = createEventEmitter<MyEvents>();
+
+// Create factory functions for specialized subscribers and emitters
+const createSubscriber = subscriber(subscribe);
+const createEmitter = emitter(emit);
+
+// Create specialized subscription and emit functions for different events
+const onUserConnected = createSubscriber('userConnected');
+const emitUserConnected = createEmitter('userConnected');
+
+const onUserDisconnected = createSubscriber('userDisconnected');
+const emitUserDisconnected = createEmitter('userDisconnected');
+
+// Use the specialized subscription functions
+onUserConnected((data) => {
+  console.log(`User ${data.userId} connected at ${data.timestamp}`);
+});
+
+onUserDisconnected((data) => {
+  console.log(`User ${data.userId} disconnected at ${data.timestamp} due to ${data.reason}`);
+});
+
+// Use the specialized emit functions
+emitUserConnected({ userId: 'user123', timestamp: new Date() });
+emitUserDisconnected({
+  userId: 'user123',
+  timestamp: new Date(),
+  reason: 'timeout' // TypeScript ensures this is one of: 'timeout' | 'manual' | 'error'
+});
+```
+
+### Benefits of Using `subscriber` and `emitter`
+
+1. **Type Safety**: Both helpers maintain full type safety, ensuring that event data matches the expected types.
+2. **Ergonomic API**: Removes the need to specify event names in listeners and when emitting events.
+3. **Better IDE Support**: Provides better autocompletion and type inference.
+4. **Modular Design**: Allows creating specialized functions for specific event types.
+5. **Reusability**: The factory functions can be used to create specialized functions for any event type.
+
+### Common Use Cases
+
+1. **Component-Specific Event Handling**:
+
+```typescript
+// In a user profile component
+const onUserProfileUpdate = createSubscriber('userProfileUpdate');
+const emitUserProfileUpdate = createEmitter('userProfileUpdate');
+
+// Subscribe to profile updates
+onUserProfileUpdate((data) => {
+  // Handle profile update
+  console.log(`Profile updated: ${data.name}`);
+});
+
+// Emit profile updates
+emitUserProfileUpdate({ name: 'John Doe', age: 30 });
+```
+
+2. **Module-Specific Event Management**:
+
+```typescript
+// In a chat module
+const onMessageReceived = createSubscriber('messageReceived');
+const emitMessageReceived = createEmitter('messageReceived');
+
+// Handle incoming messages
+onMessageReceived((data) => {
+  // Process message
+  console.log(`New message from ${data.sender}: ${data.content}`);
+});
+
+// Send messages
+emitMessageReceived({
+  sender: 'user123',
+  content: 'Hello, world!',
+  timestamp: new Date()
+});
+```
+
+3. **Complex Event Types**:
+
+```typescript
+type ChatEvents = 
+  EventDescription<'messageReceived', { sender: string; content: string; timestamp: Date }>
+  & EventDescription<'userJoined', { userId: string; username: string; timestamp: Date }>
+  & EventDescription<'userLeft', { userId: string; reason: 'disconnected' | 'kicked' | 'banned'; timestamp: Date }>;
+
+const [subscribe, emit] = createEventEmitter<ChatEvents>();
+const createSubscriber = subscriber(subscribe);
+const createEmitter = emitter(emit);
+
+// Create specialized functions for each event type
+const onMessageReceived = createSubscriber('messageReceived');
+const onUserJoined = createSubscriber('userJoined');
+const onUserLeft = createSubscriber('userLeft');
+
+const emitMessageReceived = createEmitter('messageReceived');
+const emitUserJoined = createEmitter('userJoined');
+const emitUserLeft = createEmitter('userLeft');
+
+// Use the specialized functions
+onMessageReceived((data) => {
+  console.log(`${data.sender}: ${data.content}`);
+});
+
+onUserJoined((data) => {
+  console.log(`${data.username} joined the chat`);
+});
+
+onUserLeft((data) => {
+  console.log(`User left: ${data.reason}`);
+});
+
+// Emit events
+emitMessageReceived({
+  sender: 'user123',
+  content: 'Hello!',
+  timestamp: new Date()
+});
+
+emitUserJoined({
+  userId: 'user123',
+  username: 'John',
+  timestamp: new Date()
+});
+
+emitUserLeft({
+  userId: 'user123',
+  reason: 'disconnected',
+  timestamp: new Date()
+});
+```
 
 ## API Reference
 
@@ -297,6 +491,13 @@ By understanding these commonalities and differences, you can choose the right t
 - **`once<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): SubscribeOnce<Event>`**: Utility function to create a subscription that triggers only once and then automatically unsubscribes.
 - **`SubscribeAwaited<Event extends EventDescription<string, any>>`**: Function type to subscribe to an event and return a promise that resolves when the event is triggered.
 - **`awaited<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): SubscribeAwaited<Event>`**: Utility function that returns a promise that resolves when the specified event is triggered, automatically unsubscribing afterward.
+- **`SpecializedEventListener<Event extends EventDescription<string, any>, EventType extends keyof Event & string>`**: Type for a specialized event listener that doesn't include the event name parameter.
+- **`EventSubscriber<Event extends EventDescription<string, any>, EventType extends keyof Event & string>`**: Type for a specialized subscription function for a specific event type.
+- **`EventSubscriberFactory<Event extends EventDescription<string, any>>`**: Type for a factory function that creates specialized subscription functions for specific event types.
+- **`subscriber<Event extends EventDescription<string, any>>(subscribe: SubscribeEvent<Event>): EventSubscriberFactory<Event>`**: Creates a factory function that can create specialized subscription functions for any event type.
+- **`EventEmitter<Event extends EventDescription<string, any>, EventType extends keyof Event & string>`**: Type for a specialized emit function for a specific event type.
+- **`EventEmitterFactory<Event extends EventDescription<string, any>>`**: Type for a factory function that creates specialized emit functions for specific event types.
+- **`emitter<Event extends EventDescription<string, any>>(emit: EmitEvent<Event>): EventEmitterFactory<Event>`**: Creates a factory function that can create specialized emit functions for any event type.
 
 ## Comparison: `zohar` vs. Node.js EventEmitter API
 
@@ -311,7 +512,7 @@ The `zohar` library and Node.js's built-in `EventEmitter` API serve similar purp
 
 #### Example: Using `zohar`
 
-Here’s how you would use `zohar` for type-safe event handling:
+Here's how you would use `zohar` for type-safe event handling:
 
 ```typescript
 import { EventDescription, createEventEmitter } from 'zohar';
@@ -344,7 +545,7 @@ unsubscribeEventB();
 
 #### Example: Using Node.js EventEmitter
 
-Here’s how you would use the Node.js EventEmitter for similar functionality:
+Here's how you would use the Node.js EventEmitter for similar functionality:
 
 ```typescript
 import { EventEmitter } from 'node:events';
@@ -381,7 +582,7 @@ eventEmitter.off('eventB', onEventB);
   - **Type Inference**: When you emit or subscribe to an event, TypeScript knows exactly what data type is expected, offering full type inference and autocompletion within your IDE.
   - **Simple Unsubscription**: The `subscribe` function in `zohar` returns an `unsubscribe` function, making it easy to remove listeners even when they are defined inline. This avoids the complexity of managing listener references manually.
 
-- **Node.js EventEmitter**: 
+- **Node.js EventEmitter**:
   - **No Native Type Safety**: The Node.js EventEmitter API is inherently untyped, meaning you can emit any event with any data, and TypeScript won't provide any safety checks. This can lead to potential runtime errors if the wrong data is emitted or if a listener expects a different data structure.
   - **Complex Unsubscription**: The `off` (or `removeListener`) method requires the exact reference to the original listener function. If the listener was defined inline, it's difficult to unsubscribe because you need to store the listener function in a variable for later reference. This adds complexity and makes the code harder to manage.
 
@@ -400,7 +601,7 @@ eventEmitter.off('eventB', onEventB);
 
 **Cons**:
 
-- **Learning Curve**: Developers unfamiliar with TypeScript’s advanced type features might find the initial setup slightly more complex.
+- **Learning Curve**: Developers unfamiliar with TypeScript's advanced type features might find the initial setup slightly more complex.
 - **Overhead**: In small or simple projects where type safety is less of a concern, the strict typing might feel unnecessary.
 
 #### Node.js EventEmitter
@@ -420,9 +621,9 @@ eventEmitter.off('eventB', onEventB);
 
 ### Conclusion
 
-- **When to Use `zohar`**: If you’re working on a TypeScript project where maintaining type safety and avoiding runtime errors is critical, `zohar` is the better choice. It provides strong type guarantees, making your codebase more robust and easier to maintain. Additionally, if you prefer functional programming and want a clear separation between event producers and consumers, `zohar` offers a cleaner, more modular approach with simpler unsubscription.
+- **When to Use `zohar`**: If you're working on a TypeScript project where maintaining type safety and avoiding runtime errors is critical, `zohar` is the better choice. It provides strong type guarantees, making your codebase more robust and easier to maintain. Additionally, if you prefer functional programming and want a clear separation between event producers and consumers, `zohar` offers a cleaner, more modular approach with simpler unsubscription.
   
-- **When to Use Node.js EventEmitter**: If you’re in a Node.js environment and need a quick and flexible event emitter for a smaller, simpler project, the built-in EventEmitter might suffice, but be aware of the potential for type-related issues, the need to manage instances, and the complexity of handling unsubscriptions.
+- **When to Use Node.js EventEmitter**: If you're in a Node.js environment and need a quick and flexible event emitter for a smaller, simpler project, the built-in EventEmitter might suffice, but be aware of the potential for type-related issues, the need to manage instances, and the complexity of handling unsubscriptions.
 
 ## Usage Examples
 
