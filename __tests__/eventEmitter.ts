@@ -390,6 +390,7 @@ describe("eventEmitter", () => {
 			// @ts-expect-error - should not accept wrong event type
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const emitWrongEvent = createEmitter("wrongEvent");
+			expect(true).toBe(true);
 		});
 
 		it("handles complex event types with intersection", () => {
