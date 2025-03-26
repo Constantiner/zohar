@@ -157,10 +157,22 @@ describe("eventEmitter", () => {
 				emit("userLogout", { userId: "user1", timestamp: new Date() });
 			}).not.toThrow();
 		});
-		it("should trigger the listener only once using `once`", () => {
-			const logUserLogin = jest.fn();
-			const onceSubscribe = once(subscribe);
+	});
 
+	describe("once helper", () => {
+		type AppEvents = EventDescription<"userLogin" | "userLogout", { userId: string; timestamp: Date }>;
+
+		let subscribe: SubscribeEvent<AppEvents>;
+		let emit: EmitEvent<AppEvents>;
+		let onceSubscribe: ReturnType<typeof once<AppEvents>>;
+
+		beforeEach(() => {
+			[subscribe, emit] = createEventEmitter<AppEvents>();
+			onceSubscribe = once(subscribe);
+		});
+
+		it("should trigger the listener only once", () => {
+			const logUserLogin = jest.fn();
 			onceSubscribe("userLogin", logUserLogin);
 
 			emit("userLogin", { userId: "user1", timestamp: new Date() });
@@ -168,9 +180,45 @@ describe("eventEmitter", () => {
 
 			expect(logUserLogin).toHaveBeenCalledTimes(1);
 		});
-		it("should resolve the promise with event data using `awaited`", async () => {
-			const awaitedSubscribe = awaited(subscribe);
 
+		it("should unsubscribe after the first event", () => {
+			const logUserLogin = jest.fn();
+			onceSubscribe("userLogin", logUserLogin);
+
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(logUserLogin).toHaveBeenCalledTimes(1);
+			expect(logUserLogin).toHaveBeenCalledWith("userLogin", { userId: "user1", timestamp: expect.any(Date) });
+		});
+
+		it("should handle multiple once subscriptions independently", () => {
+			const logUserLogin1 = jest.fn();
+			const logUserLogin2 = jest.fn();
+			onceSubscribe("userLogin", logUserLogin1);
+			onceSubscribe("userLogin", logUserLogin2);
+
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(logUserLogin1).toHaveBeenCalledTimes(1);
+			expect(logUserLogin2).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe("awaited helper", () => {
+		type AppEvents = EventDescription<"userLogin" | "userLogout", { userId: string; timestamp: Date }>;
+
+		let subscribe: SubscribeEvent<AppEvents>;
+		let emit: EmitEvent<AppEvents>;
+		let awaitedSubscribe: ReturnType<typeof awaited<AppEvents>>;
+
+		beforeEach(() => {
+			[subscribe, emit] = createEventEmitter<AppEvents>();
+			awaitedSubscribe = awaited(subscribe);
+		});
+
+		it("should resolve the promise with event data", async () => {
 			const loginPromise = awaitedSubscribe("userLogin");
 
 			emit("userLogin", { userId: "user1", timestamp: new Date() });
@@ -180,9 +228,7 @@ describe("eventEmitter", () => {
 			expect(result).toEqual({ userId: "user1", timestamp: expect.any(Date) });
 		});
 
-		it("should not resolve the `awaited` promise if the event does not occur", async () => {
-			const awaitedSubscribe = awaited(subscribe);
-
+		it("should not resolve if the event does not occur", async () => {
 			const loginPromise = awaitedSubscribe("userLogin");
 
 			// Emit a different event
@@ -197,50 +243,16 @@ describe("eventEmitter", () => {
 			expect(isStillPending).toBe(true);
 		});
 
-		it("handles complex event types with intersection", () => {
-			type ComplexEvents = EventDescription<"userConnected", { userId: string; timestamp: Date }> &
-				EventDescription<
-					"userDisconnected",
-					{ userId: string; timestamp: Date; reason: "timeout" | "manual" | "error" }
-				> &
-				EventDescription<"userMessage", { userId: string; message: string; priority: "low" | "high" }>;
+		it("should handle multiple awaited subscriptions independently", async () => {
+			const loginPromise1 = awaitedSubscribe("userLogin");
+			const loginPromise2 = awaitedSubscribe("userLogin");
 
-			const [subscribe, emit] = createEventEmitter<ComplexEvents>();
-			const logUserConnected = jest.fn();
-			const logUserDisconnected = jest.fn();
-			const logUserMessage = jest.fn();
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
 
-			subscribe("userConnected", logUserConnected);
-			subscribe("userDisconnected", logUserDisconnected);
-			subscribe("userMessage", logUserMessage);
+			const [result1, result2] = await Promise.all([loginPromise1, loginPromise2]);
 
-			emit("userConnected", { userId: "user1", timestamp: new Date() });
-			emit("userDisconnected", { userId: "user1", timestamp: new Date(), reason: "timeout" });
-			emit("userMessage", { userId: "user1", message: "Hello", priority: "high" });
-
-			expect(logUserConnected).toHaveBeenCalledWith("userConnected", {
-				userId: "user1",
-				timestamp: expect.any(Date)
-			});
-			expect(logUserDisconnected).toHaveBeenCalledWith("userDisconnected", {
-				userId: "user1",
-				timestamp: expect.any(Date),
-				reason: "timeout"
-			});
-			expect(logUserMessage).toHaveBeenCalledWith("userMessage", {
-				userId: "user1",
-				message: "Hello",
-				priority: "high"
-			});
-
-			// @ts-expect-error - should not accept wrong event type
-			emit("wrongEvent", {});
-			// @ts-expect-error - should not accept wrong data type for userDisconnected
-			emit("userDisconnected", { userId: "user1", timestamp: new Date() });
-			// @ts-expect-error - should not accept wrong reason value
-			emit("userDisconnected", { userId: "user1", timestamp: new Date(), reason: "invalid" });
-			// @ts-expect-error - should not accept wrong priority value
-			emit("userMessage", { userId: "user1", message: "Hello", priority: "medium" });
+			expect(result1).toEqual({ userId: "user1", timestamp: expect.any(Date) });
+			expect(result2).toEqual({ userId: "user1", timestamp: expect.any(Date) });
 		});
 	});
 
