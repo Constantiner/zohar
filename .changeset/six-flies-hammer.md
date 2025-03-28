@@ -64,7 +64,3 @@ onUserConnected(data => {
 
 emitUserConnected({ userId: "user123" });
 ```
-
-```
-
-```
