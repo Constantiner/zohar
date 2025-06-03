@@ -63,7 +63,7 @@ A functional type-safe event emitter library with zero dependencies.
 
 - **Type-safe**: Ensures that emitted events match the expected data types.
 - **Zero dependencies**: Lightweight and easy to integrate.
-- **Flexible event definitions**: Supports different events with different or the same data types.
+- **Flexible event definitions**: Supports events with either different or the same data types.
 - **Intuitive API**: Easy-to-use methods for subscribing, emitting, and unsubscribing from events.
 
 ## Installation
