@@ -533,7 +533,7 @@ export const createEventEmitter = <
 export type SubscribeOnce<Event extends EventDescription<string, UnsafeAny>> = <EventType extends keyof Event & string>(
 	eventName: EventType,
 	listener: EventListener<Event, EventType>
-) => void;
+) => UnsubscribeEvent;
 
 /**
  * Utility function to subscribe to an event only once. It automatically unsubscribes after the event is triggered.
@@ -549,6 +549,7 @@ export const once =
 			unsubscribe();
 			listener(eventName, data);
 		});
+		return unsubscribe;
 	};
 
 /**

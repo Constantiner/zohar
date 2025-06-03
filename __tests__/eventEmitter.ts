@@ -204,6 +204,19 @@ describe("eventEmitter", () => {
 			expect(logUserLogin1).toHaveBeenCalledTimes(1);
 			expect(logUserLogin2).toHaveBeenCalledTimes(1);
 		});
+
+		it("should allow cancelling before the event is emitted", () => {
+			const logUserLogin = jest.fn();
+			const unsubscribe = onceSubscribe("userLogin", logUserLogin);
+
+			expect(typeof unsubscribe).toBe("function");
+
+			unsubscribe();
+
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(logUserLogin).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("awaited helper", () => {
