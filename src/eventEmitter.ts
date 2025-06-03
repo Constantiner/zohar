@@ -478,12 +478,13 @@ export const createEventEmitter = <
 		if (!listenersMapEntry) {
 			return;
 		}
-		listenersMapEntry.listeners.forEach(({ listener, predicate }) => {
+		const listeners = [...listenersMapEntry.listeners.values()];
+		for (const { listener, predicate } of listeners) {
 			if (predicate && !predicate(data)) {
-				return;
+				continue;
 			}
 			listener(eventName, data);
-		});
+		}
 	};
 
 	// Unsubscribe all listeners for a specific event or all events
