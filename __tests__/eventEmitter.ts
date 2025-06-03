@@ -146,6 +146,31 @@ describe("eventEmitter", () => {
 			expect(unsubscribeLogin()).toBe(false);
 		});
 
+		it("should invoke all listeners even if one unsubscribes another", () => {
+			const calls: string[] = [];
+			const first = jest.fn(() => {
+				unsubscribeSecond();
+				calls.push("first");
+			});
+			const second = jest.fn(() => {
+				calls.push("second");
+			});
+			const third = jest.fn(() => {
+				calls.push("third");
+			});
+
+			subscribe("userLogin", first);
+			const unsubscribeSecond = subscribe("userLogin", second);
+			subscribe("userLogin", third);
+
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(calls).toEqual(["first", "second", "third"]);
+			expect(first).toHaveBeenCalledTimes(1);
+			expect(second).toHaveBeenCalledTimes(1);
+			expect(third).toHaveBeenCalledTimes(1);
+		});
+
 		it("should not throw or cause issues when unsubscribeAll is called without any subscriptions", () => {
 			expect(() => {
 				unsubscribeAll(); // No subscriptions should exist at this point

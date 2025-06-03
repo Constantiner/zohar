@@ -478,7 +478,8 @@ export const createEventEmitter = <
 		if (!listenersMapEntry) {
 			return;
 		}
-		listenersMapEntry.listeners.forEach(({ listener, predicate }) => {
+		const listenersArray = [...listenersMapEntry.listeners.values()];
+		listenersArray.forEach(({ listener, predicate }) => {
 			if (predicate && !predicate(data)) {
 				return;
 			}
