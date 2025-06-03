@@ -346,13 +346,18 @@ const resolveEventsStore = <Event extends EventDescription<string, UnsafeAny>>(
 };
 
 /**
- * Utility function to resolve listeners for a specific event, initializing if necessary.
+ * Utility function to obtain listeners for a specific event.
+ *
+ * When the event is absent in the provided store, this function returns a new
+ * `ListenersMapEntry` with an empty `Map` and `currentIndex` initialized to
+ * `0`. The returned entry is **not** inserted into the store; callers must
+ * handle insertion themselves if desired.
  *
  * @template Event - The event description type.
  * @template EventType - The specific event type within the event description.
  * @param eventsStore - The event store containing listeners.
  * @param eventName - The name of the event to resolve listeners for.
- * @returns The resolved listeners map entry for the specified event type.
+ * @returns The resolved or newly created listeners map entry for the specified event type.
  */
 const resolveEventListeners = <
 	Event extends EventDescription<string, UnsafeAny>,
