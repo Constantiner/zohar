@@ -99,6 +99,33 @@ describe("eventEmitter", () => {
 			expect(logUserLogin2).toHaveBeenCalled();
 		});
 
+		it("handles unsubscription of one listener by another during emission", () => {
+			const logUserLogin1 = jest.fn();
+			const logUserLogin2 = jest.fn();
+
+			// eslint-disable-next-line prefer-const
+			let unsubscribeSecond!: ReturnType<typeof subscribe>;
+
+			subscribe("userLogin", (eventName, data) => {
+				logUserLogin1(eventName, data);
+				unsubscribeSecond();
+			});
+
+			unsubscribeSecond = subscribe("userLogin", logUserLogin2);
+
+			// First emission: both listeners should be called once
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(logUserLogin1).toHaveBeenCalledTimes(1);
+			expect(logUserLogin2).toHaveBeenCalledTimes(1);
+
+			// Second emission: only the first listener should fire
+			emit("userLogin", { userId: "user1", timestamp: new Date() });
+
+			expect(logUserLogin1).toHaveBeenCalledTimes(2);
+			expect(logUserLogin2).toHaveBeenCalledTimes(1);
+		});
+
 		it("should not throw if emit is called without any listeners", () => {
 			expect(() => {
 				emit("userLogin", { userId: "user1", timestamp: new Date() });
